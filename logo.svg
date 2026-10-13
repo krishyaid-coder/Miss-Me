@@ -1,0 +1,28 @@
+<svg width="100%" viewBox="0 0 680 380" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Miss Me mascot: a knotted string character</title>
+<desc>A funky flat knotted-cord character inside a rounded app-icon tile, with a face on the loop and a gold knot at its center, beside the Miss Me wordmark.</desc>
+
+<rect x="90" y="40" width="270" height="270" rx="58" fill="#14b8a6"/>
+<rect x="90" y="40" width="270" height="270" rx="58" fill="#0d9488" opacity="0.28"/>
+
+<path d="M205 200 A60 60 0 1 1 245 200" fill="none" stroke="#ffffff" stroke-width="27" stroke-linecap="round"/>
+
+<path d="M205 200 C222 224 250 224 260 250 C266 268 268 280 270 292" fill="none" stroke="#ffffff" stroke-width="27" stroke-linecap="round"/>
+<path d="M245 200 C228 224 200 224 190 250 C184 268 182 280 180 292" fill="none" stroke="#ffffff" stroke-width="27" stroke-linecap="round"/>
+
+<ellipse cx="225" cy="212" rx="30" ry="24" fill="#fbbf24"/>
+<ellipse cx="225" cy="212" rx="30" ry="24" fill="#f59e0b" opacity="0.25"/>
+
+<circle cx="211" cy="150" r="13" fill="#ffffff"/>
+<circle cx="214" cy="153" r="7" fill="#134e4a"/>
+<circle cx="217" cy="150" r="2.5" fill="#ffffff"/>
+<circle cx="239" cy="150" r="13" fill="#ffffff"/>
+<circle cx="242" cy="153" r="7" fill="#134e4a"/>
+<circle cx="245" cy="150" r="2.5" fill="#ffffff"/>
+
+<path d="M214 170 Q225 180 236 170" fill="none" stroke="#134e4a" stroke-width="4" stroke-linecap="round"/>
+
+<text x="398" y="168" font-family="Anthropic Sans, system-ui, sans-serif" font-size="58" font-weight="500" fill="#14b8a6">miss</text>
+<text x="398" y="236" font-family="Anthropic Sans, system-ui, sans-serif" font-size="58" font-weight="500" fill="#f59e0b">me</text>
+<text x="400" y="276" font-family="Anthropic Sans, system-ui, sans-serif" font-size="17" font-weight="400" fill="#6b7280">know when your AI forgets you</text>
+</svg>

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.svg" alt="Miss Me mascot and wordmark" width="420">
+</p>
+
 # Miss Me
 
 Know when your AI actually forgets.
@@ -13,17 +17,14 @@ This is not a browser extension and not an offline eval harness.
 You pin a fact. Miss Me stores it on disk. Claude does not get that text back as a reminder. Later, a hook forces a quiz: Claude must say what it thinks each pin was. Miss Me scores the guess and reports health.
 
 ```mermaid
-flowchart TD
-  pin["You pin a fact"] --> store["Miss Me saves it locally"]
-  store --> work["You keep working in Claude Code"]
-  work --> due{"Every 8 prompts, or around compact?"}
-  due -->|not yet| work
-  due -->|yes| whisper["Hook asks Claude for a quiz"]
-  whisper --> guess["Claude recalls without seeing the stored fact"]
-  guess --> score["Miss Me compares guess to the file"]
+flowchart LR
+  pin["Pin a fact"] --> store["Save locally"]
+  store --> work["Keep working"]
+  work --> due{"8 prompts or compact?"}
+  due -->|yes| whisper["Hook quizzes Claude"]
+  whisper --> guess["Claude recalls"]
+  guess --> score["Score the guess"]
   score --> health["green / degrading / lost"]
-  health -->|not green| act["Re-paste key context or start a new session"]
-  health -->|green| work
 ```
 
 The hook is the timer. The MCP tool is the quiz. If Check were only a tool, a model that had already forgotten would also forget to call it.
