@@ -1,5 +1,5 @@
-import type { Health, Store } from "./types.js";
-import { publicAnchors } from "./store.js";
+import type { CheckResult, Health, Store } from "./types.js";
+import { latestCheck, publicAnchors } from "./store.js";
 
 export function formatHealth(health: Health): string {
   switch (health) {
@@ -39,9 +39,26 @@ export function checkNudge(store: Store, reason: string): string {
     .join(" ");
 }
 
+export function formatCheckReport(store: Store, check: CheckResult): string {
+  const labels = new Map(store.anchors.map((anchor) => [anchor.id, anchor.label]));
+  const lines = [
+    "Miss Me check ran.",
+    `Health: ${check.health} (${formatHealth(check.health)})`,
+    "What Claude recalled:",
+  ];
+  for (const recall of check.recalls) {
+    const label = labels.get(recall.id);
+    const name = label && label !== recall.id ? `${recall.id} (${label})` : recall.id;
+    const guessed = recall.recalled.trim() ? `"${recall.recalled.trim()}"` : "(blank)";
+    lines.push(`- ${name}: ${guessed} -> ${recall.hit ? "remembered" : "forgotten"}`);
+  }
+  return lines.join("\n");
+}
+
 export function statusText(store: Store, sessionKey: string): string {
   const session = store.sessions[sessionKey];
-  const health = session?.lastCheck?.health ?? "unknown";
+  const check = latestCheck(store);
+  const health = check?.health ?? "unknown";
   const anchors = publicAnchors(store);
   const lines = [
     `health: ${health}`,
@@ -49,9 +66,11 @@ export function statusText(store: Store, sessionKey: string): string {
     `turns: ${session?.turns ?? 0}`,
     `checkEvery: ${store.checkEvery}`,
   ];
-  if (session?.lastCheck) {
-    for (const recall of session.lastCheck.recalls) {
-      lines.push(`  ${recall.id}: ${recall.hit ? "hit" : "miss"}`);
+  if (check) {
+    lines.push(`lastCheck: ${check.at}`);
+    for (const recall of check.recalls) {
+      const guessed = recall.recalled.trim() ? recall.recalled.trim() : "(blank)";
+      lines.push(`  ${recall.id}: ${recall.hit ? "remembered" : "forgotten"} (${guessed})`);
     }
   }
   return lines.join("\n");

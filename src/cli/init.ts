@@ -43,13 +43,15 @@ function hookGroup(command: string, matcher?: string): JsonObject {
   return group;
 }
 
+function isMissMeHook(entry: unknown): boolean {
+  const raw = JSON.stringify(entry);
+  return raw.includes("miss-me") || raw.includes("miss_me");
+}
+
 function ensureHook(hooks: JsonObject, event: string, command: string, matcher?: string): void {
   const existing = hooks[event];
-  const list = Array.isArray(existing) ? existing : [];
-  const already = list.some((entry) => JSON.stringify(entry).includes("miss-me"));
-  if (!already) {
-    list.push(hookGroup(command, matcher));
-  }
+  const list = Array.isArray(existing) ? existing.filter((entry) => !isMissMeHook(entry)) : [];
+  list.push(hookGroup(command, matcher));
   hooks[event] = list;
 }
 
@@ -111,6 +113,7 @@ export async function runInit(): Promise<void> {
   ensureHook(hooks, "UserPromptSubmit", hookCommand);
   ensureHook(hooks, "SessionStart", hookCommand, "compact|resume");
   ensureHook(hooks, "PreCompact", hookCommand);
+  ensureHook(hooks, "Stop", hookCommand);
   settings.hooks = hooks;
   await writeJson(settingsPath, settings);
 

@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { projectCwd, sessionId } from "../core/cwd.js";
-import { formatHealth, statusText } from "../core/nudge.js";
+import { formatCheckReport, statusText } from "../core/nudge.js";
 import { scoreCheck } from "../core/score.js";
 import { loadStore, pinAnchor, publicAnchors, recordCheck, unpinAnchor } from "../core/store.js";
 
@@ -87,7 +87,7 @@ export function createServer(): McpServer {
 
   server.tool(
     "miss_me_check",
-    "Report whether this session still holds pinned anchors. Pass your recollection of each id. Do not ask the user to repeat the facts. If you do not remember one, pass an empty recalled string. The tool never tells you the stored facts.",
+    "Report whether this session still holds pinned anchors. Pass your recollection of each id. Do not ask the user to repeat the facts. If you do not remember one, pass an empty recalled string. The tool never tells you the stored facts. After it returns, you must show the report to the user in your reply: that a Miss Me check ran, what you recalled, and the health.",
     {
       recollections: z
         .array(
@@ -107,15 +107,16 @@ export function createServer(): McpServer {
         return textResult({ health: "unknown", note: "No anchors pinned." });
       }
       const check = scoreCheck(store.anchors, recollections);
-      await recordCheck(cwd, sessionId(), check);
-      return textResult({
-        health: check.health,
-        meaning: formatHealth(check.health),
-        hits: check.recalls.map((recall) => ({
-          id: recall.id,
-          hit: recall.hit,
-        })),
-      });
+      const saved = await recordCheck(cwd, sessionId(), check);
+      const report = formatCheckReport(saved, check);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `${report}\n\nShow this Miss Me result to the user in your reply. Quote what you recalled and the health. Do not skip it.`,
+          },
+        ],
+      };
     },
   );
 

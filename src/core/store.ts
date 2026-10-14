@@ -11,6 +11,7 @@ export function emptyStore(): Store {
     version: 1,
     checkEvery: DEFAULT_CHECK_EVERY,
     anchors: [],
+    lastCheck: null,
     sessions: {},
   };
 }
@@ -27,6 +28,7 @@ export async function loadStore(cwd: string): Promise<Store> {
       version: 1,
       checkEvery: parsed.checkEvery > 0 ? parsed.checkEvery : DEFAULT_CHECK_EVERY,
       anchors: parsed.anchors,
+      lastCheck: parsed.lastCheck ?? latestSessionCheck(parsed.sessions ?? {}),
       sessions: parsed.sessions ?? {},
     };
   } catch {
@@ -88,13 +90,66 @@ export async function unpinAnchor(cwd: string, id: string): Promise<boolean> {
   return true;
 }
 
+function latestSessionCheck(sessions: Store["sessions"]): CheckResult | null {
+  let best: CheckResult | null = null;
+  for (const session of Object.values(sessions)) {
+    if (session.lastCheck && (!best || session.lastCheck.at > best.at)) {
+      best = session.lastCheck;
+    }
+  }
+  return best;
+}
+
+export function latestCheck(store: Store): CheckResult | null {
+  if (store.lastCheck) {
+    return store.lastCheck;
+  }
+  return latestSessionCheck(store.sessions);
+}
+
+function busiestSessionId(store: Store, fallback: string): string {
+  let bestId = fallback;
+  let bestTurns = store.sessions[fallback]?.turns ?? -1;
+  for (const [id, session] of Object.entries(store.sessions)) {
+    if (session.turns > bestTurns) {
+      bestTurns = session.turns;
+      bestId = id;
+    }
+  }
+  return bestId;
+}
+
 export async function recordCheck(cwd: string, sessionId: string, check: CheckResult): Promise<Store> {
   const store = await loadStore(cwd);
+  const stamped = { ...check, announced: false };
+  store.lastCheck = stamped;
   const session = store.sessions[sessionId] ?? { turns: 0, lastCheck: null };
-  session.lastCheck = check;
+  session.lastCheck = stamped;
   store.sessions[sessionId] = session;
+  const activeId = busiestSessionId(store, sessionId);
+  if (activeId !== sessionId) {
+    const active = store.sessions[activeId] ?? { turns: 0, lastCheck: null };
+    active.lastCheck = stamped;
+    store.sessions[activeId] = active;
+  }
   await saveStore(cwd, store);
   return store;
+}
+
+export async function markCheckAnnounced(cwd: string): Promise<void> {
+  const store = await loadStore(cwd);
+  const check = latestCheck(store);
+  if (!check || check.announced) {
+    return;
+  }
+  const announced = { ...check, announced: true };
+  store.lastCheck = announced;
+  for (const session of Object.values(store.sessions)) {
+    if (session.lastCheck && session.lastCheck.at === check.at) {
+      session.lastCheck = announced;
+    }
+  }
+  await saveStore(cwd, store);
 }
 
 export async function bumpTurn(cwd: string, sessionId: string): Promise<{ turns: number; due: boolean; store: Store }> {

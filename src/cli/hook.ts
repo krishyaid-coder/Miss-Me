@@ -1,5 +1,5 @@
-import { checkNudge } from "../core/nudge.js";
-import { bumpTurn, loadStore } from "../core/store.js";
+import { checkNudge, formatCheckReport } from "../core/nudge.js";
+import { bumpTurn, latestCheck, loadStore, markCheckAnnounced } from "../core/store.js";
 
 type HookInput = {
   hook_event_name?: string;
@@ -8,8 +8,9 @@ type HookInput = {
   source?: string;
 };
 
-function extraContext(eventName: string, text: string): string {
+function extraContext(eventName: string, text: string, extra?: Record<string, unknown>): string {
   return JSON.stringify({
+    ...extra,
     hookSpecificOutput: {
       hookEventName: eventName,
       additionalContext: text,
@@ -69,6 +70,23 @@ export async function runHook(): Promise<void> {
     );
     if (text) {
       process.stdout.write(extraContext("PreCompact", text));
+    }
+    process.exit(0);
+  }
+
+  if (event === "Stop") {
+    const store = await loadStore(cwd);
+    const check = latestCheck(store);
+    if (check && !check.announced) {
+      const report = formatCheckReport(store, check);
+      await markCheckAnnounced(cwd);
+      process.stdout.write(
+        extraContext(
+          "Stop",
+          `${report}\n\nTell the user this Miss Me result in your next message. Quote what you recalled and the health. Do not skip it.`,
+          { systemMessage: report },
+        ),
+      );
     }
     process.exit(0);
   }

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { formatCheckReport } from "./nudge.js";
 import { healthFromHits, recallHit, scoreCheck } from "./score.js";
+import { emptyStore } from "./store.js";
 import type { Anchor } from "./types.js";
 
 describe("recallHit", () => {
@@ -62,5 +64,28 @@ describe("scoreCheck", () => {
   it("treats a missing id as a miss", () => {
     const result = scoreCheck(anchors, [{ id: "a1", recalled: "fastapi plus postgres" }]);
     assert.equal(result.health, "degrading");
+  });
+});
+
+describe("formatCheckReport", () => {
+  it("includes the guess and whether it was remembered", () => {
+    const store = emptyStore();
+    store.anchors = [
+      {
+        id: "a1",
+        label: "stack",
+        fact: "FastAPI plus Postgres",
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ];
+    const report = formatCheckReport(store, {
+      at: "2026-01-01T00:00:00.000Z",
+      health: "green",
+      recalls: [{ id: "a1", hit: true, recalled: "fastapi plus postgres" }],
+    });
+    assert.match(report, /Miss Me check ran/);
+    assert.match(report, /fastapi plus postgres/);
+    assert.match(report, /remembered/);
+    assert.match(report, /green/);
   });
 });

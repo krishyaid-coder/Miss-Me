@@ -14,7 +14,7 @@ This is not a browser extension and not an offline eval harness.
 
 ## How it works
 
-You pin a fact. Miss Me stores it on disk. Claude does not get that text back as a reminder. Later, a hook forces a quiz: Claude must say what it thinks each pin was. Miss Me scores the guess and reports health.
+You pin a fact. Miss Me stores it on disk. Claude does not get that text back as a reminder. Later, a hook forces a quiz: Claude must say what it thinks each pin was. Miss Me scores the guess and then shows you that a check ran, what Claude recalled, and the health color.
 
 ```mermaid
 flowchart LR
@@ -25,6 +25,7 @@ flowchart LR
   whisper --> guess["Claude recalls"]
   guess --> score["Score the guess"]
   score --> health["green / degrading / lost"]
+  health --> show["Show you the check and Claude's guess"]
 ```
 
 The hook is the timer. The MCP tool is the quiz. If Check were only a tool, a model that had already forgotten would also forget to call it.

@@ -17,6 +17,7 @@ export type CheckResult = {
   at: string;
   health: Health;
   recalls: AnchorRecall[];
+  announced?: boolean;
 };
 
 export type SessionState = {
@@ -28,6 +29,7 @@ export type Store = {
   version: 1;
   checkEvery: number;
   anchors: Anchor[];
+  lastCheck: CheckResult | null;
   sessions: Record<string, SessionState>;
 };
 
